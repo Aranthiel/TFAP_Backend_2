@@ -16,6 +16,8 @@ import com.portfolio.NAM.Security.jwt.JwtProvider;
 import java.util.HashSet;
 import java.util.Set;
 import javax.validation.Valid;
+
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin
+@Api(tags = "Auth")
 public class AuthController {
     @Autowired
     PasswordEncoder passwordEncoder;  
@@ -84,17 +87,14 @@ public class AuthController {
          if (bindingResult.hasErrors()) {
              return new ResponseEntity(new Mensaje("Campos mal puestos o  email invalido"), HttpStatus.BAD_REQUEST);
          }
-         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginUsuario.getNombreUsuario(), loginUsuario.getPassword()));
-
+         Authentication authentication = authenticationManager.authenticate(
+                 new UsernamePasswordAuthenticationToken(loginUsuario.getNombreUsuario(),
+                         loginUsuario.getPassword()));
          SecurityContextHolder.getContext().setAuthentication(authentication);
-         
          String jwt = jwtProvider.generateToken(authentication);
-         
          UserDetails userDetail = (UserDetails) authentication.getPrincipal();
-         
          JwtDto jwtDto = new JwtDto(jwt, userDetail.getUsername(), userDetail.getAuthorities());
-         
-         return new ResponseEntity(jwtDto, HttpStatus.OK);
+         return new ResponseEntity<>(jwtDto, HttpStatus.OK);
      }
 
 }

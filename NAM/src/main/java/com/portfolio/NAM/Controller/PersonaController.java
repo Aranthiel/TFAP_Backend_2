@@ -6,6 +6,7 @@ package com.portfolio.NAM.Controller;
 
 import com.portfolio.NAM.Interface.IPersonaService;
 import com.portfolio.NAM.Entity.Persona;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @RestController
 @CrossOrigin(origins="http://localhost:4200")
+@Api(tags="Persona")
 public class PersonaController {
     @Autowired IPersonaService ipersonaService;
     

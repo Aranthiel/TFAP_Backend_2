@@ -9,14 +9,20 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
+
+import io.jsonwebtoken.security.SignatureException;
 import java.util.Date;
+
+import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
 
 /**
  *
@@ -26,29 +32,30 @@ import org.springframework.stereotype.Component;
 public class JwtProvider {
     private final static Logger logger = LoggerFactory.getLogger(JwtProvider.class);
     
-    @Value("$(jwt.secret)")
+    @Value("${app.jwt.secret}")
     private String secret;
     
-    @Value("$(jwt.expiration)")
+    @Value("${app.jwt.expiration}")
     private int expiration;
-    
+
+    SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     
     public String generateToken(Authentication authentication){
-        UsuarioPrincipal usuarioPrincipal =(UsuarioPrincipal) authentication.getPrincipal();
+        UserDetails usuarioPrincipal =(UserDetails) authentication.getPrincipal();
         return Jwts.builder().setSubject(usuarioPrincipal.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime()+expiration*1000))
-                .signWith(SignatureAlgorithm.HS512, secret)
+                .setExpiration(new Date(new Date().getTime()+expiration))
+                .signWith(key)
                 .compact();
     }
     
     public String getNombreUsuarioFromToken (String token){
-        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
     }
     
     public boolean validateToken (String token){
         try{
-            Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
             return true;
         }catch(MalformedJwtException e){
             logger.error("Token mal formado");
@@ -58,7 +65,7 @@ public class JwtProvider {
             logger.error("Token expirado");
         }catch(IllegalArgumentException e){
             logger.error("Tocken vacío");
-        }catch(SignatureException e){
+        }catch (SignatureException e){
             logger.error("Firma no válida");
         }
         return false;
