@@ -16,8 +16,6 @@ public class JwtDto {
     private String bearer ="Bearer";
     private String NombreUsuario;
     private Collection<? extends GrantedAuthority> authorities;
-    
-    //Consatructor
 
     public JwtDto(String token, String NombreUsuario, Collection<? extends GrantedAuthority> authorities) {
         this.token = token;
